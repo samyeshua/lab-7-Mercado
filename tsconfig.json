@@ -10,8 +10,6 @@
     "isolatedModules": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "ignoreDeprecations": "6.0",
-
     "baseUrl": "./",
     "paths": {
       "@app/*": ["src/app/*"],

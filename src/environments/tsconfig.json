@@ -12,7 +12,6 @@
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
     "declaration": false,
-    "ignoreDeprecations": "6.0",
     "experimentalDecorators": true,
     "moduleResolution": "bundler",
     "importHelpers": true,
