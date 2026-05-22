@@ -1,4 +1,4 @@
 export const environment = {
-  production: true,
-  apiUrl: 'https://lab-6-activity-building-a-node-js.onrender.com'
+    production: true,
+    apiUrl: 'https://ipt-2026-backend-jmgl.onrender.com'
 };

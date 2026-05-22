@@ -1,4 +1,4 @@
-<h3 class="card-header">Register</h3>
+﻿<h3 class="card-header">Register</h3>
 <div class="card-body">
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
         <div class="row">
@@ -58,15 +58,15 @@
         </div>
         <div class="mb-3 form-check">
             <input type="checkbox" formControlName="acceptTerms" id="acceptTerms" class="form-check-input" [ngClass]="{ 'is-invalid': submitted && f.acceptTerms.errors }" />
-            <label for="acceptTerms" class="form-check-label">Accept Terms &amp; Conditions</label>
-            <div *ngIf="submitted && f.acceptTerms.errors" class="invalid-feedback">Accept Ts &amp; Cs is required</div>
+            <label for="acceptTerms" class="form-check-label">Accept Terms & Conditions</label>
+            <div *ngIf="submitted && f.acceptTerms.errors" class="invalid-feedback">Accept Ts & Cs is required</div>
         </div>
         <div class="mb-3">
             <button [disabled]="submitting" class="btn btn-primary">
                 <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>
                 Register
             </button>
-            <a routerLink="../login" class="btn btn-link">Cancel</a>
+            <a routerLink="../login" href="" class="btn btn-link">Cancel</a>
         </div>
     </form>
 </div>

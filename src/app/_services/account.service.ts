@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map, finalize } from 'rxjs/operators';
+
 import { environment } from '@environments/environment';
 import { Account } from '@app/_models';
 
@@ -35,9 +36,7 @@ export class AccountService {
     }
 
     logout() {
-        // ✅ ignore errors so logout always works even if token is expired
-        this.http.post<any>(`${baseUrl}/revoke-token`, {}, { withCredentials: true })
-            .subscribe({ error: () => {} });
+        this.http.post<any>(`${baseUrl}/revoke-token`, {}, { withCredentials: true }).subscribe();
         this.stopRefreshTokenTimer();
         this.accountSubject.next(null);
         this.router.navigate(['/account/login']);
@@ -87,7 +86,9 @@ export class AccountService {
     update(id: string, params: any) {
         return this.http.put(`${baseUrl}/${id}`, params)
             .pipe(map((account: any) => {
+                // update the current account if it was updated
                 if (account.id === this.accountValue?.id) {
+                    // publish updated account to subscribers
                     account = { ...this.accountValue, ...account };
                     this.accountSubject.next(account);
                 }
@@ -98,17 +99,22 @@ export class AccountService {
     delete(id: string) {
         return this.http.delete(`${baseUrl}/${id}`)
             .pipe(finalize(() => {
-                if (id === this.accountValue?.id) {
+                // auto logout if the logged in account was deleted
+                if (id === this.accountValue?.id)
                     this.logout();
-                }
             }));
     }
+
+    // helper methods
 
     private refreshTokenTimeout?: any;
 
     private startRefreshTokenTimer() {
+        // parse json object from base64 encoded jwt token
         const jwtBase64 = this.accountValue!.jwtToken!.split('.')[1];
         const jwtToken = JSON.parse(atob(jwtBase64));
+
+        // set a timeout to refresh the token a minute before it expires
         const expires = new Date(jwtToken.exp * 1000);
         const timeout = expires.getTime() - Date.now() - (60 * 1000);
         this.refreshTokenTimeout = setTimeout(() => this.refreshToken().subscribe(), timeout);
@@ -117,4 +123,4 @@ export class AccountService {
     private stopRefreshTokenTimer() {
         clearTimeout(this.refreshTokenTimeout);
     }
-}   
+}

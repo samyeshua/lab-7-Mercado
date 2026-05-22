@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
@@ -6,73 +6,71 @@ import { first } from 'rxjs/operators';
 import { AccountService, AlertService } from '@app/_services';
 import { MustMatch } from '@app/_helpers';
 
-@Component({
-  templateUrl: './register.component.html',
-  standalone: false
-})
+@Component({ templateUrl: 'register.component.html', standalone: false })
 export class RegisterComponent implements OnInit {
-  form!: FormGroup;
-  submitting = false;
-  submitted = false;
+    form!: FormGroup;
+    submitting = false;
+    submitted = false;
 
-  constructor(
-    private formBuilder: FormBuilder,
-    private route: ActivatedRoute,
-    private router: Router,
-    private accountService: AccountService,
-    private alertService: AlertService
-  ) {}
+    constructor(
+        private formBuilder: FormBuilder,
+        private route: ActivatedRoute,
+        private router: Router,
+        private accountService: AccountService,
+        private alertService: AlertService
+    ) { }
 
-  ngOnInit() {
-    this.form = this.formBuilder.group(
-      {
-        title: ['', Validators.required],
-        firstName: ['', Validators.required],
-        lastName: ['', Validators.required],
-        email: ['', [Validators.required, Validators.email]],
-        password: ['', [Validators.required, Validators.minLength(6)]],
-        confirmPassword: ['', Validators.required],
-        acceptTerms: [false, Validators.requiredTrue]
-      },
-      {
-        validator: MustMatch('password', 'confirmPassword')
-      }
-    );
-  }
-
-  // convenience getter for easy access to form fields
-  get f() {
-    return this.form.controls;
-  }
-
-  onSubmit() {
-    this.submitted = true;
-
-    // reset alerts on submit
-    this.alertService.clear();
-
-    // stop here if form is invalid
-    if (this.form.invalid) {
-      return;
+    ngOnInit() {
+        this.form = this.formBuilder.group({
+            title: ['', Validators.required],
+            firstName: ['', Validators.required],
+            lastName: ['', Validators.required],
+            email: ['', [Validators.required, Validators.email]],
+            password: ['', [Validators.required, Validators.minLength(6)]],
+            confirmPassword: ['', Validators.required],
+            acceptTerms: [false, Validators.requiredTrue]
+        }, {
+            validator: MustMatch('password', 'confirmPassword')
+        });
     }
 
-    this.submitting = true;
+    // convenience getter for easy access to form fields
+    get f() { return this.form.controls; }
 
-    this.accountService
-      .register(this.form.value)
-      .pipe(first())
-      .subscribe({
-        next: () => {
-          this.alertService.success(
-            'Registration successful, please check your email for verification instructions',
-            { keepAfterRouteChange: true }
-          );
-          this.router.navigate(['../login'], { relativeTo: this.route });
-        },
-        error: error => {
-          this.alertService.error(error);
-          this.submitting = false;
+    onSubmit() {
+        this.submitted = true;
+
+        // reset alerts on submit
+        this.alertService.clear();
+
+        // stop here if form is invalid
+        if (this.form.invalid) {
+            return;
         }
-      });
-  }
+
+        this.submitting = true;
+        this.accountService.register(this.form.value)
+            .pipe(first())
+            .subscribe({
+                next: (result: any) => {
+                    if (result?.verificationUrl) {
+                        this.alertService.info(
+                            `<h4>Verification Link</h4>
+                            <p>Your email provider may be disabled on the hosting environment.</p>
+                            <p>Please click the link below to verify your email address:</p>
+                            <p><a href="${result.verificationUrl}">${result.verificationUrl}</a></p>`,
+                            { autoClose: false, keepAfterRouteChange: true }
+                        );
+                    } else {
+                        this.alertService.success('Registration successful, please check your email for verification instructions', { keepAfterRouteChange: true });
+                    }
+
+                    this.router.navigate(['../login'], { relativeTo: this.route });
+                },
+                error: error => {
+                    this.alertService.error(error);
+                    this.submitting = false;
+                }
+            });
+    }
 }

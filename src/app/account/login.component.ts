@@ -1,7 +1,8 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+﻿import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
+
 import { AccountService, AlertService } from '@app/_services';
 
 @Component({ templateUrl: 'login.component.html', standalone: false })
@@ -32,6 +33,7 @@ export class LoginComponent implements OnInit {
     onSubmit() {
         this.submitted = true;
         this.cdr.detectChanges();
+
         this.alertService.clear();
 
         if (this.form.invalid) {
@@ -40,7 +42,8 @@ export class LoginComponent implements OnInit {
 
         this.submitting = true;
         this.cdr.detectChanges();
-        this.accountService.login(this.f['email'].value, this.f['password'].value)
+
+        this.accountService.login(this.f.email.value, this.f.password.value)
             .pipe(first())
             .subscribe({
                 next: () => {

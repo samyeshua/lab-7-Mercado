@@ -1,51 +1,49 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { first } from 'rxjs/operators';
 
 import { AccountService, AlertService } from '@app/_services';
 
 enum EmailStatus {
-  Verifying,
-  Failed
+    Verifying,
+    Failed
 }
 
-@Component({
-  templateUrl: 'verify-email.component.html',
-  standalone: false
-})
+@Component({ templateUrl: 'verify-email.component.html', standalone: false })
 export class VerifyEmailComponent implements OnInit {
+    EmailStatus = EmailStatus;
+    emailStatus = EmailStatus.Verifying;
 
-  EmailStatus = EmailStatus;
-  emailStatus = EmailStatus.Verifying;
+    constructor(
+        private route: ActivatedRoute,
+        private router: Router,
+        private accountService: AccountService,
+        private alertService: AlertService
+    ) { }
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private accountService: AccountService,
-    private alertService: AlertService
-  ) {}
+    ngOnInit() {
+        // Use queryParamMap subscription for more reliable token capture
+        this.route.queryParamMap.pipe(first()).subscribe(params => {
+            const token = params.get('token');
 
-  ngOnInit(): void {
-    const token = this.route.snapshot.queryParams['token'];
+            // remove token from url to prevent http referer leakage
+            this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
 
-    // remove token from url to prevent http referer leakage
-    this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
-
-    this.accountService.verifyEmail(token)
-      .pipe(first())
-      .subscribe({
-        next: () => {
-          this.alertService.success(
-            'Verification successful, you can now login',
-            { keepAfterRouteChange: true }
-          );
-
-          this.router.navigate(['../login'], { relativeTo: this.route });
-        },
-
-        error: () => {
-          this.emailStatus = EmailStatus.Failed;
-        }
-      });
-  }
+            if (token) {
+                this.accountService.verifyEmail(token)
+                    .pipe(first())
+                    .subscribe({
+                        next: () => {
+                            this.alertService.success('Verification successful, you can now login', { keepAfterRouteChange: true });
+                            this.router.navigate(['../login'], { relativeTo: this.route });
+                        },
+                        error: () => {
+                            this.emailStatus = EmailStatus.Failed;
+                        }
+                    });
+            } else {
+                this.emailStatus = EmailStatus.Failed;
+            }
+        });
+    }
 }

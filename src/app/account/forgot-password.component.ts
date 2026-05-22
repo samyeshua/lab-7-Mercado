@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first, finalize } from 'rxjs/operators';
+
 import { AccountService, AlertService } from '@app/_services';
 
 @Component({ templateUrl: 'forgot-password.component.html', standalone: false })
@@ -36,7 +37,7 @@ export class ForgotPasswordComponent implements OnInit {
         }
 
         this.loading = true;
-        this.accountService.forgotPassword(this.f['email'].value)
+        this.accountService.forgotPassword(this.f.email.value)
             .pipe(first())
             .pipe(finalize(() => this.loading = false))
             .subscribe({

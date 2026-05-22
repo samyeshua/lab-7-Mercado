@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
+
 import { AccountService, AlertService } from '@app/_services';
 import { MustMatch } from '@app/_helpers';
 
@@ -24,41 +26,63 @@ export class ResetPasswordComponent implements OnInit {
         private formBuilder: FormBuilder,
         private route: ActivatedRoute,
         private router: Router,
+        private location: Location,
         private accountService: AccountService,
-        private alertService: AlertService
+        private alertService: AlertService,
+        private cdr: ChangeDetectorRef,
+        private ngZone: NgZone
     ) { }
 
     ngOnInit() {
         this.form = this.formBuilder.group({
             password: ['', [Validators.required, Validators.minLength(6)]],
-            confirmPassword: ['', Validators.required]
+            confirmPassword: ['', Validators.required],
         }, {
             validator: MustMatch('password', 'confirmPassword')
         });
 
         const token = this.route.snapshot.queryParams['token'];
 
+        if (!token) {
+            this.tokenStatus = TokenStatus.Invalid;
+            return;
+        }
+
+        // remove token from url to prevent http referer leakage
+        // use Location.replaceState so we don't trigger a route reuse that would
+        // destroy this component and re-run ngOnInit with no token in the query params
+        this.location.replaceState(this.router.url.split('?')[0]);
+
         this.accountService.validateResetToken(token)
             .pipe(first())
             .subscribe({
                 next: () => {
-                    this.token = token;
-                    this.tokenStatus = TokenStatus.Valid;
-                    // remove token from url AFTER validation succeeds
-                    this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
+                    this.ngZone.run(() => {
+                        this.token = token;
+                        this.tokenStatus = TokenStatus.Valid;
+                        this.cdr.detectChanges();
+                    });
                 },
-                error: () => {
-                    this.tokenStatus = TokenStatus.Invalid;
+                error: error => {
+                    console.error('validateResetToken failed:', error);
+                    this.ngZone.run(() => {
+                        this.tokenStatus = TokenStatus.Invalid;
+                        this.cdr.detectChanges();
+                    });
                 }
             });
     }
 
+    // convenience getter for easy access to form fields
     get f() { return this.form.controls; }
 
     onSubmit() {
         this.submitted = true;
+
+        // reset alerts on submit
         this.alertService.clear();
 
+        // stop here if form is invalid
         if (this.form.invalid) {
             return;
         }

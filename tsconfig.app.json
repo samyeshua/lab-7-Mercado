@@ -1,17 +1,15 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "outDir": "./out-tsc/app",
-    "rootDir": "src",
-    "types": [],
-    "noPropertyAccessFromIndexSignature": false
-  },
-  "files": [
-    "src/main.ts",
-    "src/main.server.ts"
-  ],
-  "include": [
-    "src/**/*.d.ts",
-    "src/**/*.ts"
-  ]
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./out-tsc/app",
+        "types": []
+    },
+    "files": [
+        "src/main.ts",
+        "src/polyfills.ts"
+    ],
+    "include": [
+        "src/**/*.d.ts"
+    ]
 }
